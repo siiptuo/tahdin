@@ -19,7 +19,18 @@ void bye(void) {
 int main(int argc, char *argv[])
 {
     const unsigned int sample_rate = 48000;
-    const unsigned int tempo = 120;
+
+    if (argc != 2) {
+        printf("Usage: tahdin [tempo]\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    char *end;
+    long tempo = strtol(argv[1], &end, 10);
+    if (*end != '\0' || tempo <= 0) {
+        fprintf(stderr, "invalid tempo value: '%s'\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
 
     int err;
 
