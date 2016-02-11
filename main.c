@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    size_t size = sample_rate * 4 / (tempo / 60);
+    size_t size = sample_rate * 4.0 / (tempo / 60.0);
     uint16_t buffer[size];
     memset(buffer, 0, size * sizeof(buffer[0]));
 
