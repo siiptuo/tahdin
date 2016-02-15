@@ -20,16 +20,34 @@ int main(int argc, char *argv[])
 {
     const unsigned int sample_rate = 48000;
 
-    if (argc != 2) {
-        printf("Usage: tahdin [tempo]\n");
+    if (argc < 2 || argc > 3) {
+        printf("Usage: tahdin [time signature] tempo\n");
         exit(EXIT_SUCCESS);
     }
 
     char *end;
-    long tempo = strtol(argv[1], &end, 10);
+
+    long tempo = strtol(argv[argc - 1], &end, 10);
     if (*end != '\0' || tempo <= 0) {
-        fprintf(stderr, "invalid tempo value: '%s'\n", argv[1]);
+        fprintf(stderr, "invalid tempo value: '%s'\n", argv[argc - 1]);
         exit(EXIT_FAILURE);
+    }
+
+    long numerator = 4;
+    long denominator = 4;
+
+    if (argc == 3) {
+        numerator = strtol(argv[1], &end, 10);
+        if (*end != '/' || numerator <= 0) {
+            fprintf(stderr, "invalid time signature: '%s'\n", argv[1]);
+            exit(EXIT_FAILURE);
+        }
+
+        denominator = strtol(end + 1, &end, 10);
+        if (*end != '\0' || denominator <= 0) {
+            fprintf(stderr, "invalid time signature: '%s'\n", argv[1]);
+            exit(EXIT_FAILURE);
+        }
     }
 
     int err;
@@ -54,14 +72,15 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    size_t size = sample_rate * 4.0 / (tempo / 60.0);
+    size_t beat = 4 * 60 * sample_rate / tempo / denominator;
+    size_t size = beat * numerator;
     uint16_t buffer[size];
     memset(buffer, 0, size * sizeof(buffer[0]));
 
-    for (size_t j = 0; j < 4; j++) {
+    for (size_t j = 0; j < numerator; j++) {
         const int freq = (j == 0) ? 523.25 : 261.63;
         for (size_t i = 0; i < size / 50; i++) {
-            buffer[size / 4 * j + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
+            buffer[j * beat + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
         }
     }
 
