@@ -7,13 +7,12 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 
-#include <alsa/asoundlib.h>
+#include "alsa.h"
 
-snd_pcm_t *handle = NULL;
-
-void bye(void) {
-    snd_pcm_close(handle);
+static void bye(void) {
+    alsa_free();
 }
 
 int main(int argc, char *argv[])
@@ -51,26 +50,12 @@ int main(int argc, char *argv[])
     }
 
     int err;
-
     if ((err = atexit(bye)) != 0) {
         fprintf(stderr, "ERROR: cannot set exit function\n");
         exit(EXIT_FAILURE);
     }
 
-    if ((err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-        fprintf(stderr, "ALSA ERROR: Playback open error (%s)\n", snd_strerror(err));
-        exit(EXIT_FAILURE);
-    }
-
-    if ((err = snd_pcm_set_params(handle, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, sample_rate, 1, 500000)) < 0) {
-        fprintf(stderr, "ALSA ERROR: Playback open error (%s)\n", snd_strerror(err));
-        exit(EXIT_FAILURE);
-    }
-
-    if ((err = snd_pcm_prepare(handle)) < 0) {
-        fprintf(stderr, "ALSA ERROR: Cannot prepare audio interface for use (%s)\n", snd_strerror(err));
-        exit(EXIT_FAILURE);
-    }
+    alsa_init(sample_rate);
 
     size_t beat = 4 * 60 * sample_rate / tempo / denominator;
     size_t size = beat * numerator;
@@ -85,17 +70,7 @@ int main(int argc, char *argv[])
     }
 
     while (true) {
-        snd_pcm_sframes_t frames = snd_pcm_writei(handle, buffer, size);
-        if (frames < 0) {
-            frames = snd_pcm_recover(handle, frames, 0);
-        }
-        if (frames < 0) {
-            printf("ALSA ERROR: write failed (%s)\n", snd_strerror(err));
-            break;
-        }
-        if (frames > 0 && frames < (long)size) {
-            printf("ALSA ERROR: Short write (expected %li, wrote %li)\n", (long)size, frames);
-        }
+        alsa_play(buffer, size);
     }
 
     return EXIT_SUCCESS;

@@ -1,2 +1,2 @@
-all: main.c
-	gcc main.c `pkg-config --libs --cflags alsa` -lm -o tahdin
+all: main.c alsa.c
+	gcc main.c alsa.c `pkg-config --libs --cflags alsa` -lm -o tahdin
