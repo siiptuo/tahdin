@@ -8,8 +8,10 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "alsa.h"
+#include "wav.h"
 
 static void bye(void) {
     alsa_free();
@@ -19,12 +21,25 @@ int main(int argc, char *argv[])
 {
     const unsigned int sample_rate = 48000;
 
-    if (argc < 2 || argc > 3) {
-        printf("Usage: tahdin [time signature] tempo\n");
-        exit(EXIT_SUCCESS);
+    char *output = NULL;
+
+    int c;
+    while ((c = getopt(argc, argv, "o:")) != -1) {
+        switch (c) {
+            case 'o':
+                output = optarg;
+                break;
+            default:
+                abort();
+        }
     }
 
     char *end;
+
+    if (argc - optind != 1 && argc - optind != 2) {
+        printf("Usage: tahdin [options] [time signature] tempo\n");
+        exit(EXIT_SUCCESS);
+    }
 
     long tempo = strtol(argv[argc - 1], &end, 10);
     if (*end != '\0' || tempo <= 0) {
@@ -35,8 +50,8 @@ int main(int argc, char *argv[])
     long numerator = 4;
     long denominator = 4;
 
-    if (argc == 3) {
-        numerator = strtol(argv[1], &end, 10);
+    if (argc - optind == 2) {
+        numerator = strtol(argv[argc - 2], &end, 10);
         if (*end != '/' || numerator <= 0) {
             fprintf(stderr, "invalid time signature: '%s'\n", argv[1]);
             exit(EXIT_FAILURE);
@@ -48,14 +63,6 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-
-    int err;
-    if ((err = atexit(bye)) != 0) {
-        fprintf(stderr, "ERROR: cannot set exit function\n");
-        exit(EXIT_FAILURE);
-    }
-
-    alsa_init(sample_rate);
 
     size_t beat = 4 * 60 * sample_rate / tempo / denominator;
     size_t size = beat * numerator;
@@ -69,8 +76,18 @@ int main(int argc, char *argv[])
         }
     }
 
-    while (true) {
-        alsa_play(buffer, size);
+    if (output) {
+        wav_write(output, sample_rate, buffer, size, 4);
+    } else {
+        alsa_init(sample_rate);
+        int err;
+        if ((err = atexit(bye)) != 0) {
+            fprintf(stderr, "ERROR: cannot set exit function\n");
+            exit(EXIT_FAILURE);
+        }
+        while (true) {
+            alsa_play(buffer, size);
+        }
     }
 
     return EXIT_SUCCESS;
