@@ -13,21 +13,49 @@
 #include "alsa.h"
 #include "wav.h"
 
-static void bye(void) {
+static void bye(void)
+{
     alsa_free();
 }
+
+static double sgn(double x)
+{
+    if (x > 0) {
+        return 1;
+    }
+    if (x < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+typedef enum {
+    SOUND_SINE,
+    SOUND_SQUARE,
+} Sound;
 
 int main(int argc, char *argv[])
 {
     const unsigned int sample_rate = 48000;
 
     char *output = NULL;
+    Sound sound = SOUND_SINE;
 
     int c;
-    while ((c = getopt(argc, argv, "o:")) != -1) {
+    while ((c = getopt(argc, argv, "o:s:")) != -1) {
         switch (c) {
             case 'o':
                 output = optarg;
+                break;
+            case 's':
+                if (strcmp(optarg, "sine") == 0) {
+                    sound = SOUND_SINE;
+                } else if (strcmp(optarg, "square") == 0) {
+                    sound = SOUND_SQUARE;
+                } else {
+                    fprintf(stderr, "sound %s is invalid, expected sine or square", optarg);
+                    exit(EXIT_FAILURE);
+                }
                 break;
             default:
                 abort();
@@ -72,7 +100,14 @@ int main(int argc, char *argv[])
     for (size_t j = 0; j < numerator; j++) {
         const int freq = (j == 0) ? 523.25 : 261.63;
         for (size_t i = 0; i < size / 50; i++) {
-            buffer[j * beat + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
+            switch (sound) {
+                case SOUND_SINE:
+                    buffer[j * beat + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
+                    break;
+                case SOUND_SQUARE:
+                    buffer[j * beat + i] = INT16_MAX * sgn(sin((2 * M_PI * i * freq) / sample_rate));
+                    break;
+            }
         }
     }
 
