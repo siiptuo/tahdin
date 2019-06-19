@@ -1,25 +1,18 @@
 #include "wav.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
-static void write_uint16(uint16_t i, FILE *fp)
+static bool write_uint16(uint16_t i, FILE *fp)
 {
-    uint8_t buf[] = {
-        (i & 0x00ff),
-        (i & 0xff00) >> 8,
-    };
-    fwrite(buf, sizeof buf, 1, fp);
+    uint8_t buf[] = { i, i >> 8 };
+    return fwrite(buf, sizeof buf, 1, fp) == sizeof buf;
 }
 
-static void write_uint32(uint32_t i, FILE *fp)
+static bool write_uint32(uint32_t i, FILE *fp)
 {
-    uint8_t buf[] = {
-        (i & 0x000000ff),
-        (i & 0x0000ff00) >> 8,
-        (i & 0x00ff0000) >> 16,
-        (i & 0xff000000) >> 24,
-    };
-    fwrite(buf, sizeof buf, 1, fp);
+    uint8_t buf[] = { i, i >> 8, i >> 16, i >> 24 };
+    return fwrite(buf, sizeof buf, 1, fp) == sizeof buf;
 }
 
 void wav_write(const char *path, size_t sample_rate, uint16_t *buffer, size_t size, size_t repeats)
