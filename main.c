@@ -32,6 +32,7 @@ static double sgn(double x)
 typedef enum {
     SOUND_SINE,
     SOUND_SQUARE,
+    SOUND_SAW,
 } Sound;
 
 int main(int argc, char *argv[])
@@ -52,8 +53,10 @@ int main(int argc, char *argv[])
                     sound = SOUND_SINE;
                 } else if (strcmp(optarg, "square") == 0) {
                     sound = SOUND_SQUARE;
+                } else if (strcmp(optarg, "saw") == 0) {
+                    sound = SOUND_SAW;
                 } else {
-                    fprintf(stderr, "sound %s is invalid, expected sine or square", optarg);
+                    fprintf(stderr, "sound %s is invalid, expected sine, square or saw", optarg);
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -98,7 +101,7 @@ int main(int argc, char *argv[])
     memset(buffer, 0, size * sizeof(buffer[0]));
 
     for (size_t j = 0; j < numerator; j++) {
-        const int freq = (j == 0) ? 523.25 : 261.63;
+        const double freq = (j == 0) ? 523.25 : 261.63;
         for (size_t i = 0; i < size / 50; i++) {
             switch (sound) {
                 case SOUND_SINE:
@@ -106,6 +109,9 @@ int main(int argc, char *argv[])
                     break;
                 case SOUND_SQUARE:
                     buffer[j * beat + i] = INT16_MAX * sgn(sin((2 * M_PI * i * freq) / sample_rate));
+                    break;
+                case SOUND_SAW:
+                    buffer[j * beat + i] = INT16_MAX * (2 * fmod(i * freq / sample_rate, 1) - 1);
                     break;
             }
         }
