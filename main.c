@@ -33,6 +33,7 @@ typedef enum {
     SOUND_SINE,
     SOUND_SQUARE,
     SOUND_SAW,
+    SOUND_TRIANGLE,
 } Sound;
 
 int main(int argc, char *argv[])
@@ -55,8 +56,10 @@ int main(int argc, char *argv[])
                     sound = SOUND_SQUARE;
                 } else if (strcmp(optarg, "saw") == 0) {
                     sound = SOUND_SAW;
+                } else if (strcmp(optarg, "triangle") == 0) {
+                    sound = SOUND_TRIANGLE;
                 } else {
-                    fprintf(stderr, "sound %s is invalid, expected sine, square or saw", optarg);
+                    fprintf(stderr, "sound %s is invalid, expected sine, square, saw or triangle", optarg);
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -112,6 +115,9 @@ int main(int argc, char *argv[])
                     break;
                 case SOUND_SAW:
                     buffer[j * beat + i] = INT16_MAX * (2 * fmod(i * freq / sample_rate, 1) - 1);
+                    break;
+                case SOUND_TRIANGLE:
+                    buffer[j * beat + i] = INT16_MAX * (2 * fabs(fmod(i * freq / sample_rate, 2) - 1) - 1);
                     break;
             }
         }
