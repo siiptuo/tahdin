@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
+#include <getopt.h>
 
 #include "alsa.h"
 #include "wav.h"
@@ -43,8 +43,14 @@ int main(int argc, char *argv[])
     char *output = NULL;
     Sound sound = SOUND_SINE;
 
+    static struct option long_options[] = {
+        { "output", required_argument, NULL, 'o' },
+        { "sound",  required_argument, NULL, 's' },
+        { NULL,     0,                 NULL, 0 },
+    };
+
     int c;
-    while ((c = getopt(argc, argv, "o:s:")) != -1) {
+    while ((c = getopt_long(argc, argv, "o:s:", long_options, NULL)) != -1) {
         switch (c) {
             case 'o':
                 output = optarg;
