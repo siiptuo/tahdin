@@ -36,6 +36,16 @@ typedef enum {
     SOUND_TRIANGLE,
 } Sound;
 
+static void usage()
+{
+    printf("Usage: tahdin [options] [time signature] tempo\n");
+    printf("Options:\n");
+    printf("  -o, --output=FILE  export WAV file\n");
+    printf("  -s, --sound=SOUND  play sine, square, saw or triangle\n");
+    printf("  -h, --help         display this help and exit\n");
+    printf("  -V, --version      display version information and exit\n");
+}
+
 int main(int argc, char *argv[])
 {
     const unsigned int sample_rate = 48000;
@@ -44,13 +54,15 @@ int main(int argc, char *argv[])
     Sound sound = SOUND_SINE;
 
     static struct option long_options[] = {
-        { "output", required_argument, NULL, 'o' },
-        { "sound",  required_argument, NULL, 's' },
-        { NULL,     0,                 NULL, 0 },
+        { "output",  required_argument, NULL, 'o' },
+        { "sound",   required_argument, NULL, 's' },
+        { "help",    no_argument,       NULL, 'h' },
+        { "version", no_argument,       NULL, 'V' },
+        { NULL,      0,                 NULL, 0 },
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "o:s:", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "o:s:hV", long_options, NULL)) != -1) {
         switch (c) {
             case 'o':
                 output = optarg;
@@ -69,6 +81,12 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
                 break;
+            case 'h':
+                usage();
+                return EXIT_SUCCESS;
+            case 'V':
+                printf("tahdin 0.0\n");
+                return EXIT_SUCCESS;
             default:
                 abort();
         }
@@ -77,8 +95,8 @@ int main(int argc, char *argv[])
     char *end;
 
     if (argc - optind != 1 && argc - optind != 2) {
-        printf("Usage: tahdin [options] [time signature] tempo\n");
-        exit(EXIT_SUCCESS);
+        usage();
+        return EXIT_SUCCESS;
     }
 
     long tempo = strtol(argv[argc - 1], &end, 10);
