@@ -1,3 +1,6 @@
+# Copyright 2019 Tuomas Siipola
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 project('tahdin', 'c')
 alsa_dep = dependency('alsa')
 cc = meson.get_compiler('c')

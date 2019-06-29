@@ -1,3 +1,6 @@
+// Copyright 2019 Tuomas Siipola
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef ALSA_H
 #define ALSA_H
 

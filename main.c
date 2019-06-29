@@ -1,6 +1,5 @@
-// Tahdin - simple metronome
-// Copyright (c) 2016 Tuomas Siipola
-// See LICENSE file for license details.
+// Copyright 2019 Tuomas Siipola
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdio.h>
 #include <stdlib.h>
