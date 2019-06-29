@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
 
+#include "metronome.h"
 #include "alsa.h"
 #include "wav.h"
 
@@ -16,24 +16,6 @@ static void bye(void)
 {
     alsa_free();
 }
-
-static double sgn(double x)
-{
-    if (x > 0) {
-        return 1;
-    }
-    if (x < 0) {
-        return -1;
-    }
-    return 0;
-}
-
-typedef enum {
-    SOUND_SINE,
-    SOUND_SQUARE,
-    SOUND_SAW,
-    SOUND_TRIANGLE,
-} Sound;
 
 static void usage()
 {
@@ -121,30 +103,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    size_t beat = 4 * 60 * sample_rate / tempo / denominator;
-    size_t size = beat * numerator;
-    uint16_t buffer[size];
-    memset(buffer, 0, size * sizeof(buffer[0]));
-
-    for (size_t j = 0; j < numerator; j++) {
-        const double freq = (j == 0) ? 523.25 : 261.63;
-        for (size_t i = 0; i < size / 50; i++) {
-            switch (sound) {
-                case SOUND_SINE:
-                    buffer[j * beat + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
-                    break;
-                case SOUND_SQUARE:
-                    buffer[j * beat + i] = INT16_MAX * sgn(sin((2 * M_PI * i * freq) / sample_rate));
-                    break;
-                case SOUND_SAW:
-                    buffer[j * beat + i] = INT16_MAX * (2 * fmod(i * freq / sample_rate, 1) - 1);
-                    break;
-                case SOUND_TRIANGLE:
-                    buffer[j * beat + i] = INT16_MAX * (2 * fabs(fmod(i * freq / sample_rate, 2) - 1) - 1);
-                    break;
-            }
-        }
-    }
+    uint16_t *buffer = NULL;
+    size_t size;
+    metronome_generate(&buffer, &size, sample_rate, tempo, numerator, denominator, sound);
 
     if (output) {
         wav_write(output, sample_rate, buffer, size, 4);
