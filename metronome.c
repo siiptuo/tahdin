@@ -28,21 +28,36 @@ void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rat
 
     for (size_t j = 0; j < numerator; j++) {
         const double freq = (j == 0) ? 523.25 : 261.63;
-        for (size_t i = 0; i < *size / 50; i++) {
+        const size_t duration = *size / 50;
+        for (size_t i = 0; i < duration; i++) {
+            double t = (double)i / duration;
+
+            // Generate sample.
+            double sample = 0.0;
             switch (sound) {
                 case SOUND_SINE:
-                    (*buffer)[j * beat + i] = INT16_MAX * sin((2 * M_PI * i * freq) / sample_rate);
+                    sample = sin((2 * M_PI * i * freq) / sample_rate);
                     break;
                 case SOUND_SQUARE:
-                    (*buffer)[j * beat + i] = INT16_MAX * sgn(sin((2 * M_PI * i * freq) / sample_rate));
+                    sample = sgn(sin((2 * M_PI * i * freq) / sample_rate));
                     break;
                 case SOUND_SAW:
-                    (*buffer)[j * beat + i] = INT16_MAX * (2 * fmod(i * freq / sample_rate, 1) - 1);
+                    sample = 2 * fmod(i * freq / sample_rate, 1) - 1;
                     break;
                 case SOUND_TRIANGLE:
-                    (*buffer)[j * beat + i] = INT16_MAX * (2 * fabs(fmod(i * freq / sample_rate, 2) - 1) - 1);
+                    sample = 2 * fabs(fmod(i * freq / sample_rate, 2) - 1) - 1;
                     break;
             }
+
+            // Fade sound in and out to reduce audio pops and clicks.
+            if (t < 0.1) {
+                sample *= t / 0.1;
+            } else if (t > 0.75) {
+                sample *= 1.0 - ((t - 0.75) / (1.0 - 0.75));
+            }
+
+            // Write to output.
+            (*buffer)[j * beat + i] = INT16_MAX * sample;
         }
     }
 }
