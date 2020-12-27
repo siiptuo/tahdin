@@ -45,7 +45,7 @@ void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rat
                     sample = 2 * fmod(i * freq / sample_rate, 1) - 1;
                     break;
                 case SOUND_TRIANGLE:
-                    sample = 2 * fabs(fmod(i * freq / sample_rate, 2) - 1) - 1;
+                    sample = 4 * fabs(fmod(i * freq / sample_rate - 0.25, 1) - 0.5) - 1;
                     break;
             }
 
