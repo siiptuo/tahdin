@@ -17,7 +17,7 @@ static double sgn(double x)
     return 0;
 }
 
-void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rate, long tempo, int numerator, int denominator, Sound sound)
+void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rate, long tempo, int numerator, int denominator, Sound sound, float volume)
 {
     size_t beat = 4 * 60 * sample_rate / tempo / denominator;
     *size = beat * numerator;
@@ -48,6 +48,7 @@ void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rat
                     sample = 4 * fabs(fmod(i * freq / sample_rate - 0.25, 1) - 0.5) - 1;
                     break;
             }
+            sample *= volume;
 
             // Fade sound in and out to reduce audio pops and clicks.
             if (t < 0.1) {

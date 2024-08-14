@@ -14,6 +14,6 @@ typedef enum {
     SOUND_TRIANGLE,
 } Sound;
 
-extern void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rate, long tempo, int numerator, int denominator, Sound sound);
+extern void metronome_generate(uint16_t **buffer, size_t *size, unsigned int sample_rate, long tempo, int numerator, int denominator, Sound sound, float volume);
 
 #endif // METRONOME_H

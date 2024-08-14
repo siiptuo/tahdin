@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
+#include <math.h>
 
 #include "metronome.h"
 #include "alsa.h"
@@ -23,6 +24,7 @@ static void usage()
     printf("Options:\n");
     printf("  -o, --output=FILE  export WAV file\n");
     printf("  -s, --sound=SOUND  play sine, square, saw or triangle\n");
+    printf("  -v, --volume       set output volume (0.0 - 1.0)\n");
     printf("  -h, --help         display this help and exit\n");
     printf("  -V, --version      display version information and exit\n");
 }
@@ -33,17 +35,19 @@ int main(int argc, char *argv[])
 
     char *output = NULL;
     Sound sound = SOUND_SINE;
+    float volume = 1.0;
 
     static struct option long_options[] = {
         { "output",  required_argument, NULL, 'o' },
         { "sound",   required_argument, NULL, 's' },
+        { "volume",  required_argument, NULL, 'v' },
         { "help",    no_argument,       NULL, 'h' },
         { "version", no_argument,       NULL, 'V' },
         { NULL,      0,                 NULL, 0 },
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "o:s:hV", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "o:s:v:hV", long_options, NULL)) != -1) {
         switch (c) {
             case 'o':
                 output = optarg;
@@ -61,6 +65,9 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "sound %s is invalid, expected sine, square, saw or triangle", optarg);
                     exit(EXIT_FAILURE);
                 }
+                break;
+            case 'v':
+                volume = powf(atof(optarg), 4);
                 break;
             case 'h':
                 usage();
@@ -105,7 +112,7 @@ int main(int argc, char *argv[])
 
     uint16_t *buffer = NULL;
     size_t size;
-    metronome_generate(&buffer, &size, sample_rate, tempo, numerator, denominator, sound);
+    metronome_generate(&buffer, &size, sample_rate, tempo, numerator, denominator, sound, volume);
 
     if (output) {
         wav_write(output, sample_rate, buffer, size, 4);

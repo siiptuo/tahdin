@@ -37,7 +37,7 @@ gpointer alsa_thread(gpointer data)
         if (running) {
             uint16_t *buffer = NULL;
             size_t size;
-            metronome_generate(&buffer, &size, 48000, bpm, 4, 4, SOUND_SINE);
+            metronome_generate(&buffer, &size, 48000, bpm, 4, 4, SOUND_SINE, 1.0);
             alsa_play(buffer, size);
             free(buffer);
         }
